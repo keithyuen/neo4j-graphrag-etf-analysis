@@ -12,7 +12,7 @@ Key features include 7-step GraphRAG pipeline (text preprocessing → entity gro
 
 ## UI Screenshot
 
-![ETF GraphRAG UI](/Users/keith.yuen/python/neo4j-graphrag-etf-analysis/.claude/claude-code-chat-images/image_1755941050817.png)
+![ETF GraphRAG UI](ui/UI-Frontpage-Screenshot.jpg)
 
 ## System Architecture
 
