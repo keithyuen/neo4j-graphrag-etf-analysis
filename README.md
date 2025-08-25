@@ -53,14 +53,6 @@ docker compose --profile cpu --profile init up -d
 docker compose --profile gpu --profile init up -d
 ```
 
-Test the complete pipeline:
-
-```bash
-curl -X POST "http://localhost:8000/ask/" \
-  -H "Content-Type: application/json" \
-  -d '{"query": "What is SPY'\''s exposure to Apple?"}'
-```
-
 ## Prerequisites
 
 * Docker & Docker Compose (20.10+)
