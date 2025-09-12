@@ -10,26 +10,20 @@ class LLMSynthesizer:
     def __init__(self, ollama_service: OllamaService):
         self.ollama = ollama_service
         
-        self.synthesis_prompt = """You are a financial data analyst. Provide a concise, accurate response using ONLY the provided data.
+        self.synthesis_prompt = """You are a professional ETF analyst. Analyze the data and provide investment insights.
 
 User Query: {query}
-Intent: {intent}
+Intent: {intent}  
 Results Summary: {results_summary}
 
-CRITICAL RULES:
-- Use ONLY the data from Results Summary - never invent ticker names, percentages, or ETF names
-- Include specific numbers from the actual results
-- For ETF holdings: 1-3% is small, 3-7% is significant, 7%+ is very large/top holding
-- Keep responses between 60-150 words
-- If Results Summary says "No data found", state this clearly
-- Never fabricate or guess information not in the Results Summary
+Provide a professional analysis that explains what this data means for investors. Include the specific percentages and explain the investment significance. Use precise financial terminology. Keep response focused and informative (80-150 words).
 
-Answer:"""
+Analysis:"""
 
         self.no_results_responses = [
-            "No results found for this query. Please verify the ETF tickers and company symbols are correct.",
-            "The query returned no data. Please check that the specified ETFs and companies exist in our database.",
-            "No matching data found. Ensure you're using valid ticker symbols from our supported ETFs: SPY, QQQ, IWM, IJH, IVE, IVW."
+            "No matching holdings found for the specified parameters. Our database covers SPY, QQQ, IWM, IJH, IVE, and IVW with their complete portfolio compositions. Please verify ticker symbols or try alternative search terms.",
+            "The requested ETF exposure data is not available. Consider checking ticker spelling or exploring similar holdings within our supported ETF universe: SPY, QQQ, IWM, IJH, IVE, IVW.",
+            "Unable to locate the specified holdings relationship. Our analysis covers major ETF portfolios - please confirm the ETF and company tickers are accurate and currently held."
         ]
     
     async def synthesize(self, query: str, cypher_result: CypherResult, intent_result: IntentResult) -> str:
@@ -37,49 +31,57 @@ Answer:"""
         Generate natural language answer from query results.
         This is MANDATORY for all /ask responses.
         """
-        logger.info("Starting LLM synthesis", 
-                   intent=intent_result.intent,
-                   row_count=len(cypher_result.rows) if cypher_result.rows else 0,
-                   query_preview=query[:100])
+        logger.info("Starting LLM synthesis - step 1")
         
-        if not cypher_result.rows and intent_result.intent != "general_llm":
-            return self._get_no_results_response(intent_result.intent)
+        try:
+            row_count = len(cypher_result.rows) if cypher_result.rows else 0
+            logger.info("Row count calculated", row_count=row_count)
+        except Exception as e:
+            logger.error("Row count calculation failed", error=str(e), error_type=type(e).__name__)
+            raise e
         
-        # Create results summary from top rows
-        results_summary = self._create_results_summary(cypher_result.rows, intent_result.intent)
+        try:
+            if not cypher_result.rows and intent_result.intent != "general_llm":
+                return self._get_no_results_response(intent_result.intent)
+            logger.info("No results check passed")
+        except Exception as e:
+            logger.error("No results check failed", error=str(e), error_type=type(e).__name__)
+            raise e
+        
+        try:
+            # Create results summary from top rows
+            results_summary = self._create_results_summary(cypher_result.rows, intent_result.intent)
+            logger.info("Results summary created", summary_length=len(results_summary))
+        except Exception as e:
+            logger.error("Results summary creation failed", error=str(e), error_type=type(e).__name__)
+            raise e
         
         # Generate answer via LLM
         try:
+            logger.info("Formatting prompt")
             prompt = self.synthesis_prompt.format(
                 query=query,
                 intent=intent_result.intent,
                 results_summary=results_summary
             )
+            logger.info("Prompt formatted successfully", prompt_length=len(prompt))
             
-            # Debug logging to see exact prompt sent to LLM
-            logger.debug("Sending synthesis prompt to LLM", 
-                        query=query,
-                        intent=intent_result.intent,
-                        results_summary=results_summary,
-                        prompt_preview=prompt[:500])
-            
+            logger.info("Calling Ollama generate")
             response = await self.ollama.generate(
                 prompt=prompt,
-                temperature=0.15,  # Slightly lower for speed
-                max_tokens=200,    # Reduced for faster generation
-                options={
-                    'num_predict': 200,
-                    'top_k': 20,    # Faster token selection
-                    'top_p': 0.85   # Balanced speed vs quality
-                }
+                temperature=0.2,
+                max_tokens=300
             )
+            logger.info("Ollama generate successful", response_length=len(response) if response else 0)
             
             # Validate response contains a number (only for data-driven queries)
             if intent_result.intent != "general_llm" and not self._contains_concrete_number(response):
                 response = self._add_concrete_number(response, cypher_result.rows, intent_result.intent)
+            logger.info("Number validation successful")
             
             # Ensure response is within word limit
             response = self._ensure_word_limit(response)
+            logger.info("Word limit check successful")
             
             logger.info("LLM synthesis completed", 
                        query_length=len(query),
@@ -90,7 +92,7 @@ Answer:"""
             return response.strip()
             
         except Exception as e:
-            logger.error("LLM synthesis failed", error=str(e), intent=intent_result.intent)
+            logger.error("LLM synthesis step failed", error=str(e), error_type=type(e).__name__)
             # Fallback to deterministic summary
             return self._create_fallback_response(cypher_result.rows, intent_result.intent)
     
@@ -109,7 +111,7 @@ Answer:"""
         logger.debug("Creating results summary", 
                     intent=intent, 
                     row_count=len(rows),
-                    sample_row=top_rows[0] if top_rows else None)
+                    has_data=bool(top_rows))
         
         if intent == "etf_exposure_to_company":
             return self._summarize_exposure(top_rows)
@@ -144,8 +146,7 @@ Answer:"""
                     row_keys=list(row.keys()),
                     exposure_percent=exposure_percent,
                     etf_ticker=etf,
-                    company=company,
-                    full_row=row)
+                    company=company)
         
         return f"ETF {etf} holds {exposure_percent:.2f}% in {company}."
     
@@ -278,7 +279,7 @@ Answer:"""
         
         return response
     
-    def _ensure_word_limit(self, response: str, max_words: int = 150) -> str:
+    def _ensure_word_limit(self, response: str, max_words: int = 300) -> str:
         """Ensure response is within word limit."""
         words = response.split()
         if len(words) > max_words:
@@ -310,7 +311,7 @@ Answer:"""
                     key_number = f" showing {int(value)} items"
                     break
         
-        return f"Query completed successfully with {count} results for {intent_readable}{key_number}. The data shows relevant investment information based on your query parameters."
+        return f"Analysis complete: Found {count} data points for {intent_readable}{key_number}. The results provide specific ETF exposure metrics and portfolio composition details that can inform your investment decisions."
     
     def _get_no_results_response(self, intent: str) -> str:
         """Get appropriate no-results response based on intent."""
@@ -334,36 +335,33 @@ Answer:"""
         entity_context = self._create_entity_context(entities)
         
         # Enhanced prompt with comprehensive data
-        enhanced_prompt = f"""You are an ETF investment analyst with access to comprehensive market data. Answer the user's question using the provided comprehensive ETF holdings data.
+        enhanced_prompt = f"""You are a senior ETF strategist with comprehensive market intelligence. Provide expert analysis that transforms data into actionable investment insights.
 
 User Query: {query}
-Intent: {intent_result.intent} (confidence: {intent_result.confidence:.2f})
-Entities Mentioned: {entity_context}
+Intent Classification: {intent_result.intent} (confidence: {intent_result.confidence:.2f})
+Relevant Entities: {entity_context}
 
-Comprehensive ETF Data:
+Comprehensive ETF Intelligence:
 {comprehensive_summary}
 
-INSTRUCTIONS:
-- Answer the specific question using the comprehensive data provided
-- Include relevant numerical data (percentages, holdings counts, etc.)
-- Compare across multiple ETFs when relevant to the query
-- Provide insights based on sector distributions and holdings overlap
-- Keep response concise but informative (100-200 words)
-- If the query can't be fully answered, explain what data is available
-- Focus on the most relevant ETFs and holdings for the user's question
+STRATEGIC ANALYSIS FRAMEWORK:
+- Synthesize data into clear investment implications and portfolio insights
+- Quantify concentration risks, diversification benefits, and sector exposures
+- Provide comparative context across ETFs with specific percentages
+- Highlight market positioning and competitive advantages/disadvantages
+- Identify potential correlation risks or diversification opportunities
+- Address liquidity, volatility, and risk-adjusted return considerations when relevant
+- Use professional investment terminology with practical applications
+- Structure insights for both tactical allocation and strategic planning
+- Deliver 120-200 words of high-value analysis
 
-Answer:"""
+Professional Investment Analysis:"""
         
         try:
             response = await self.ollama.generate(
                 prompt=enhanced_prompt,
-                temperature=0.12,  # Lower for speed
-                max_tokens=250,    # Reduced for faster comprehensive responses
-                options={
-                    'num_predict': 250,
-                    'top_k': 15,    # Faster generation
-                    'top_p': 0.85
-                }
+                temperature=0.2,
+                max_tokens=200
             )
             
             # Ensure response contains concrete numbers
