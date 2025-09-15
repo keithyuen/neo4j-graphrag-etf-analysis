@@ -12,7 +12,7 @@ This project demonstrates how to use **Neo4j + GraphRAG** for ETF analysis by co
 
 ## 7-Step RAG Pipeline  
 
-1. **Ingestion and Text preprocessing** – ingest, clean and normalize user queries for consistent downstream handling.  
+1. **Text preprocessing** – clean and normalize user queries for consistent downstream handling.  
 2. **Entity grounding** – map query terms to graph entities like ETFs, companies, and sectors.  
 3. **Intent classification** – detect the user’s intent (e.g., top holdings, sector mix, overlap).  
 4. **Parameter fulfillment** – validate and assemble data parameters required by the intent template.  
