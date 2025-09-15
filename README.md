@@ -10,6 +10,7 @@ This project demonstrates how to use **Neo4j + GraphRAG** for ETF analysis by co
 - **Core Graph Data Model**: Represent ETFs, companies, and sectors as nodes; relationships capture holdings and classifications.  
 - **Graph RAG**: Graph structure is combined with semantic search to improve precision, trustworthiness, and explainability.  
 - **AI LLM**: Using Ollama to host Mistral 7B Instruct with strong cost effectiveness, fast inference and self-hosting. It’s well-suited for GraphRAG, where Neo4j provides precise facts and the model delivers concise, grounded answers with low latency.
+- **Tech Stack**: Technology stacks are chosen to be self-hosted on personal computer with Docker Compose.
 
 ## UI Screenshot
 
