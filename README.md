@@ -10,16 +10,6 @@ This project demonstrates how to use **Neo4j + GraphRAG** for ETF analysis by co
 - **Core Graph Data Model**: Represent ETFs, companies, and sectors as nodes; relationships capture holdings and classifications.  
 - **Graph RAG**: Graph structure is combined with semantic search to improve precision, trustworthiness, and explainability.  
 
-## 7-Step RAG Pipeline  
-
-1. **Text preprocessing** – clean and normalize user queries for consistent downstream handling.  
-2. **Entity grounding** – map query terms to graph entities like ETFs, companies, and sectors.  
-3. **Intent classification** – detect the user’s intent (e.g., top holdings, sector mix, overlap).  
-4. **Parameter fulfillment** – validate and assemble data parameters required by the intent template.  
-5. **Cypher execution** – run parameterized Cypher queries on the Neo4j graph.  
-6. **LLM synthesis** – convert query results into clear, concise, natural language answers.  
-7. **Response assembly** – package the answer, data table, and metadata into a unified payload.  
-
 ## UI Screenshot
 
 ![ETF GraphRAG UI](ui/UI-Frontpage-Screenshot.jpg)
@@ -47,6 +37,16 @@ This project demonstrates how to use **Neo4j + GraphRAG** for ETF analysis by co
                        │ • Intent Class  │
                        └─────────────────┘
 ```
+
+## RAG Pipeline  
+
+1. **Text preprocessing** – clean and normalize user queries for consistent downstream handling.  
+2. **Entity grounding** – map query terms to graph entities like ETFs, companies, and sectors.  
+3. **Intent classification** – detect the user’s intent (e.g., top holdings, sector mix, overlap).  
+4. **Parameter fulfillment** – validate and assemble data parameters required by the intent template.  
+5. **Cypher execution** – run parameterized Cypher queries on the Neo4j graph.  
+6. **LLM synthesis** – convert query results into clear, concise, natural language answers.  
+7. **Response assembly** – package the answer, data table, and metadata into a unified payload.  
 
 ## Quick Start
 
