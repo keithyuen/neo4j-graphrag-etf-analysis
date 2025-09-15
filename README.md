@@ -9,10 +9,6 @@ This project demonstrates how to use **Neo4j + GraphRAG** for ETF analysis by co
 - **Goal**: Explore ETF holdings, sector distributions and cross-holdings using a graph database.  
 - **Core Graph Data Model**: Represent ETFs, companies, and sectors as nodes; relationships capture holdings and classifications.  
 - **RAG Enhancement**: Graph structure is combined with semantic search to improve precision, trustworthiness, and explainability.  
-- **Tech stack**:  
-  - **Neo4j** for graph storage and traversal  
-  - **Cypher queries** for analysis  
-  - **LLM + GraphRAG pipeline** for natural language interaction  
 
 ---
 
