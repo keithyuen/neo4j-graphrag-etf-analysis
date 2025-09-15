@@ -7,7 +7,7 @@ ETF composition and overlap analysis using Neo4j GraphRAG, FastAPI, React, and C
 This project demonstrates how to use **Neo4j + GraphRAG** for ETF analysis by combining graph relationships with embeddings to deliver more explainable and precise results than vector-only RAG.  
 
 - **Goal**: Explore ETF holdings, sector distributions and cross-holdings using a graph database.  
-- **Core Data Model**: Represent ETFs, companies, and sectors as nodes; relationships capture holdings and classifications.  
+- **Core Graph Data Model**: Represent ETFs, companies, and sectors as nodes; relationships capture holdings and classifications.  
 - **RAG Enhancement**: Graph structure is combined with semantic search to improve precision, trustworthiness, and explainability.  
 - **Tech stack**:  
   - **Neo4j** for graph storage and traversal  
