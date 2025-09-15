@@ -32,9 +32,9 @@ class GraphRAGPipeline:
         # Caching
         self._comprehensive_data_cache: Optional[CypherResult] = None
         self._comprehensive_data_cache_time: float = 0
-        self._comprehensive_cache_ttl = 3600  # 1 hour TTL
+        self._comprehensive_cache_ttl = 36000  # 10 hour TTL
         self._response_cache: Dict[str, tuple] = {}  # query_hash -> (response, timestamp)
-        self._response_cache_ttl = 1800  # 30 minutes TTL
+        self._response_cache_ttl = 18000  # 5 hour TTL
     
     async def process_query(self, query: str) -> GraphRAGResponse:
         """

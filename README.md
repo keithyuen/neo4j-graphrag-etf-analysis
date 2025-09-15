@@ -4,11 +4,27 @@ ETF composition and overlap analysis using Neo4j GraphRAG, FastAPI, React, and C
 
 ## Overview
 
-A compact system for analyzing ETF holdings, overlaps, and sector exposures using Neo4j as a GraphRAG database with intelligent 7-step query pipeline and mandatory LLM synthesis. Ships via Docker Compose for one-command local deployment.
+This project demonstrates how to use **Neo4j + GraphRAG** for ETF analysis by combining graph relationships with embeddings to deliver more explainable and precise results than vector-only RAG.  
 
-This system demonstrates how GraphRAG enhances traditional graph queries by combining structured data retrieval with natural language understanding. The pipeline transforms user questions into parameterized Cypher queries, then synthesizes results into conversational answers with concrete numerical insights. Unlike simple RAG systems that work with unstructured text, this approach leverages Neo4j's graph relationships to provide precise financial data analysis while maintaining the conversational interface users expect.
+- **Goal**: Explore ETF holdings, sector distributions and cross-holdings using a graph database.  
+- **Core Data Model**: Represent ETFs, companies, and sectors as nodes; relationships capture holdings and classifications.  
+- **RAG Enhancement**: Graph structure is combined with semantic search to improve precision, trustworthiness, and explainability.  
+- **Tech stack**:  
+  - **Neo4j** for graph storage and traversal  
+  - **Cypher queries** for analysis  
+  - **LLM + GraphRAG pipeline** for natural language interaction  
 
-Key features include 7-step GraphRAG pipeline (text preprocessing → entity grounding → intent classification → parameter fulfillment → Cypher execution → LLM synthesis → response assembly), mandatory LLM synthesis for every query, security with read-only Cypher and input sanitization, interactive graph visualization with Cytoscape.js, real ETF data from SPY, QQQ, IWM, IJH, IVE, IVW, and one-command deployment with Docker Compose.
+---
+
+## 7-Step RAG Pipeline  
+
+1. **Ingest ETF data** – parse holdings from ETF CSVs (ticker, company, sector, weights).  
+2. **Chunk & embed documents** – generate vector embeddings for ETF metadata and related documents.  
+3. **Store in Neo4j** – create nodes (ETF, Company, Sector, Intent, Entity) and relationships (`HOLDS`, `IN_SECTOR`, etc.).  
+4. **Build vector index** – enable semantic retrieval of ETF/Company/Entity nodes.  
+5. **Query processing** – user query is embedded and matched semantically, then enriched with graph traversal.  
+6. **Prompt construction** – retrieved chunks and graph connections are injected into the LLM prompt with lineage and citations.  
+7. **Response generation** – LLM produces the final answer, with explainable paths grounded in the graph.  
 
 ## UI Screenshot
 

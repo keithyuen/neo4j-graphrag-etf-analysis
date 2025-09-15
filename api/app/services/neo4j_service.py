@@ -18,7 +18,13 @@ class Neo4jService:
     def _connect(self):
         """Establish connection to Neo4j."""
         try:
-            self.driver = GraphDatabase.driver(self.uri, auth=(self.user, self.password))
+            # Configure connection with increased timeouts
+            self.driver = GraphDatabase.driver(
+                self.uri, 
+                auth=(self.user, self.password),
+                connection_timeout=30,  # Connection timeout in seconds
+                max_transaction_retry_time=180  # Transaction retry timeout in seconds
+            )
             logger.info("Neo4j connection established", uri=self.uri)
         except Exception as e:
             logger.error("Failed to connect to Neo4j", error=str(e), uri=self.uri)
@@ -34,7 +40,8 @@ class Neo4jService:
             
         try:
             with self.driver.session(database=self.database) as session:
-                result = session.run(query, parameters or {})
+                # Configure query with 3-minute timeout
+                result = session.run(query, parameters or {}, timeout=180)
                 rows = [self._serialize_record(record.data()) for record in result]
                 
                 execution_time = (time.time() - start_time) * 1000

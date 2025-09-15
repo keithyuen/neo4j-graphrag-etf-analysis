@@ -10,7 +10,7 @@ class OllamaService:
     def __init__(self, host: str, model: str = "mistral:instruct"):
         self.host = host.rstrip('/')
         self.model = model
-        self.client = httpx.AsyncClient(timeout=30.0)
+        self.client = httpx.AsyncClient(timeout=90.0)
     
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
     async def generate(

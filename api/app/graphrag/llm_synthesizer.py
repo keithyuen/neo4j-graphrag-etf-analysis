@@ -16,7 +16,7 @@ User Query: {query}
 Intent: {intent}  
 Results Summary: {results_summary}
 
-Provide a professional analysis that explains what this data means for investors. Include the specific percentages and explain the investment significance. Use precise financial terminology. Keep response focused and informative (80-150 words).
+Provide a professional analysis that explains what this data means for investors. Include the specific percentages and explain the investment significance. Use precise financial terminology. Keep response comprehensive yet focused (150-300 words).
 
 Analysis:"""
 
@@ -70,7 +70,7 @@ Analysis:"""
             response = await self.ollama.generate(
                 prompt=prompt,
                 temperature=0.2,
-                max_tokens=300
+                max_tokens=500
             )
             logger.info("Ollama generate successful", response_length=len(response) if response else 0)
             
@@ -80,7 +80,7 @@ Analysis:"""
             logger.info("Number validation successful")
             
             # Ensure response is within word limit
-            response = self._ensure_word_limit(response)
+            response = self._ensure_word_limit(response, max_words=400)
             logger.info("Word limit check successful")
             
             logger.info("LLM synthesis completed", 
@@ -279,13 +279,23 @@ Analysis:"""
         
         return response
     
-    def _ensure_word_limit(self, response: str, max_words: int = 300) -> str:
-        """Ensure response is within word limit."""
+    def _ensure_word_limit(self, response: str, max_words: int = 400) -> str:
+        """Ensure response is within word limit, trying to end at sentence boundaries."""
         words = response.split()
-        if len(words) > max_words:
-            truncated = ' '.join(words[:max_words])
-            return truncated + "..."
-        return response
+        if len(words) <= max_words:
+            return response
+        
+        # Try to find a good sentence ending within the limit
+        truncated_text = ' '.join(words[:max_words])
+        
+        # Look for the last sentence-ending punctuation
+        for punct in ['. ', '! ', '? ']:
+            last_punct = truncated_text.rfind(punct)
+            if last_punct > len(truncated_text) * 0.7:  # Only if it's reasonably near the end
+                return truncated_text[:last_punct + 1]
+        
+        # If no good sentence break found, truncate at word boundary without "..."
+        return truncated_text
     
     def _create_fallback_response(self, rows: List[Dict[str, Any]], intent: str) -> str:
         """Create fallback response when LLM fails."""
@@ -353,7 +363,7 @@ STRATEGIC ANALYSIS FRAMEWORK:
 - Address liquidity, volatility, and risk-adjusted return considerations when relevant
 - Use professional investment terminology with practical applications
 - Structure insights for both tactical allocation and strategic planning
-- Deliver 120-200 words of high-value analysis
+- Deliver 200-400 words of comprehensive, high-value analysis
 
 Professional Investment Analysis:"""
         
@@ -361,7 +371,7 @@ Professional Investment Analysis:"""
             response = await self.ollama.generate(
                 prompt=enhanced_prompt,
                 temperature=0.2,
-                max_tokens=200
+                max_tokens=600
             )
             
             # Ensure response contains concrete numbers
@@ -369,7 +379,7 @@ Professional Investment Analysis:"""
                 response = self._add_concrete_number_from_comprehensive(response, cypher_result)
             
             # Ensure word limit
-            response = self._ensure_word_limit(response, 250)  # Slightly higher limit for comprehensive responses
+            response = self._ensure_word_limit(response, 500)  # Higher limit for comprehensive responses
             
             logger.info("Comprehensive LLM synthesis completed", 
                        query_length=len(query),

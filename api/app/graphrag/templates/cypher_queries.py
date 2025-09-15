@@ -90,7 +90,11 @@ CYPHER_TEMPLATES = {
     
     "etfs_by_sector_threshold": CypherTemplate(
         query="""
-            MATCH (e:ETF)-[h:HOLDS]->(c:Company)-[:IN_SECTOR]->(s:Sector {name: $sector})
+            // Optimized query: start from sector to use index efficiently
+            MATCH (s:Sector)
+            WHERE s.name = $sector OR s.name CONTAINS $sector
+            WITH s
+            MATCH (s)<-[:IN_SECTOR]-(c:Company)<-[h:HOLDS]-(e:ETF)
             WITH e, sum(h.weight) as sector_exposure
             WHERE sector_exposure >= $threshold
             RETURN e.ticker, e.name as etf_name,

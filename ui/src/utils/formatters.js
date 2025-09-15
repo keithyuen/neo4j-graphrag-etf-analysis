@@ -66,12 +66,13 @@ export function formatExecutionTime(ms) {
   if (ms === null || ms === undefined || isNaN(ms)) {
     return 'N/A'
   }
-  
-  if (ms < 1000) {
-    return `${Math.round(ms)}ms`
-  } else {
-    return `${(ms / 1000).toFixed(2)}s`
-  }
+  // Corrected to always show in seconds
+  return `${Math.round(ms)}s`
+  // if (ms < 1000) {
+  //   return `${Math.round(ms)}ms`
+  // } else {
+  //   return `${(ms / 1000).toFixed(2)}s`
+  // }
 }
 
 /**
