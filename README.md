@@ -12,13 +12,13 @@ This project demonstrates how to use **Neo4j + GraphRAG** for ETF analysis by co
 
 ## 7-Step RAG Pipeline  
 
-1. **Ingest ETF data** – parse holdings from ETF CSVs (ticker, company, sector, weights).  
-2. **Chunk & embed documents** – generate vector embeddings for ETF metadata and related documents.  
-3. **Store in Neo4j** – create nodes (ETF, Company, Sector, Intent, Entity) and relationships (`HOLDS`, `IN_SECTOR`, etc.).  
-4. **Build vector index** – enable semantic retrieval of ETF/Company/Entity nodes.  
-5. **Query processing** – user query is embedded and matched semantically, then enriched with graph traversal.  
-6. **Prompt construction** – retrieved chunks and graph connections are injected into the LLM prompt with lineage and citations.  
-7. **Response generation** – LLM produces the final answer, with explainable paths grounded in the graph.  
+1. **Ingestion and Text preprocessing** – ingest, clean and normalize user queries for consistent downstream handling.  
+2. **Entity grounding** – map query terms to graph entities like ETFs, companies, and sectors.  
+3. **Intent classification** – detect the user’s intent (e.g., top holdings, sector mix, overlap).  
+4. **Parameter fulfillment** – validate and assemble data parameters required by the intent template.  
+5. **Cypher execution** – run parameterized Cypher queries on the Neo4j graph.  
+6. **LLM synthesis** – convert query results into clear, concise, natural language answers.  
+7. **Response assembly** – package the answer, data table, and metadata into a unified payload.  
 
 ## UI Screenshot
 
